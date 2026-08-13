@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NISM Chapter 5 Quiz Game — Scheme Related Information</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 17px;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 16px 16px 40px;
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    padding: 10px 0 18px;
+    border-bottom: 3px solid #1F4E79;
+    margin-bottom: 18px;
+  }
+  header h1 {
+    font-size: 20px;
+    color: #1F4E79;
+    margin: 0 0 4px;
+    font-family: Verdana, Geneva, sans-serif;
+  }
+  header p {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+  }
+
+  /* ---- Start screen ---- */
+  #startScreen { text-align: center; padding: 30px 10px; }
+  #startScreen p { line-height: 1.5; }
+  .bigBtn {
+    background: #1F4E79;
+    color: #fff;
+    border: none;
+    padding: 14px 30px;
+    font-size: 18px;
+    font-family: Verdana, Geneva, sans-serif;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 18px;
+    touch-action: manipulation;
+  }
+  .bigBtn:active { background: #163a5c; }
+
+  input[type=text] {
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 17px;
+    padding: 10px;
+    width: 80%;
+    max-width: 320px;
+    border: 2px solid #1F4E79;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
+
+  /* ---- Quiz screen ---- */
+  #quizScreen { display: none; }
+
+  .topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .progressPill {
+    background: #EEF3F8;
+    border: 1px solid #cfe0ef;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 14px;
+    color: #1F4E79;
+    font-weight: bold;
+  }
+  .scorePill {
+    background: #E2EFDA;
+    border: 1px solid #b7dba0;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 14px;
+    color: #2b6b1f;
+    font-weight: bold;
+  }
+  #timerWrap {
+    margin-bottom: 16px;
+  }
+  #timerBarBg {
+    width: 100%;
+    height: 12px;
+    background: #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+  }
+  #timerBarFill {
+    height: 100%;
+    width: 100%;
+    background: #2e8b57;
+    transition: width 1s linear, background-color 0.4s;
+  }
+  #timerText {
+    text-align: right;
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  #questionBox {
+    background: #fbfbfd;
+    border: 1px solid #e2e2e2;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  #questionNum {
+    color: #1F4E79;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+  #questionText {
+    font-size: 17px;
+    line-height: 1.5;
+    font-weight: bold;
+    color: #111;
+  }
+
+  #optionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .optionBtn {
+    text-align: left;
+    background: #fff;
+    border: 2px solid #cfd8e3;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 17px;
+    font-family: Verdana, Geneva, sans-serif;
+    color: #1a1a1a;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    touch-action: manipulation;
+  }
+  .optionBtn .letter {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #eef3f8;
+    color: #1F4E79;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .optionBtn:active { background: #f2f6fa; }
+  .optionBtn.correct {
+    background: #E2EFDA;
+    border-color: #4c9a2a;
+  }
+  .optionBtn.correct .letter { background: #4c9a2a; color: #fff; }
+  .optionBtn.wrong {
+    background: #FBE4E4;
+    border-color: #c0392b;
+  }
+  .optionBtn.wrong .letter { background: #c0392b; color: #fff; }
+  .optionBtn.disabledOpt {
+    cursor: default;
+    opacity: 0.85;
+  }
+  .optionBtn.fadedOpt {
+    opacity: 0.55;
+  }
+
+  #explanationBox {
+    display: none;
+    background: #FFF8E1;
+    border: 1px solid #f0dca0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  #explanationBox b { color: #7a5b00; }
+
+  #controlsRow {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  #nextBtn {
+    background: #1F4E79;
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    font-size: 17px;
+    font-family: Verdana, Geneva, sans-serif;
+    border-radius: 8px;
+    cursor: pointer;
+    display: none;
+    touch-action: manipulation;
+  }
+  #nextBtn:active { background: #163a5c; }
+
+  /* ---- Scoreboard screen ---- */
+  #scoreScreen { display: none; text-align: center; }
+  #scoreScreen h2 { color: #1F4E79; margin-bottom: 6px; }
+  #finalScoreBig {
+    font-size: 46px;
+    font-weight: bold;
+    color: #1F4E79;
+    margin: 10px 0;
+  }
+  #finalScoreSub { color: #555; margin-bottom: 20px; }
+  #resultTableWrap {
+    max-height: 340px;
+    overflow-y: auto;
+    text-align: left;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  table.resultTable { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.resultTable th, table.resultTable td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.resultTable th { background: #EEF3F8; color: #1F4E79; position: sticky; top: 0; }
+  .tagCorrect { color: #2b6b1f; font-weight: bold; }
+  .tagWrong { color: #c0392b; font-weight: bold; }
+  .tagTimeout { color: #b8860b; font-weight: bold; }
+
+  #leaderboardWrap {
+    text-align: left;
+    border-top: 2px dashed #ccc;
+    padding-top: 16px;
+    margin-top: 8px;
+  }
+  #leaderboardWrap h3 { color: #1F4E79; margin-bottom: 8px; }
+  table.lbTable { width: 100%; border-collapse: collapse; font-size: 15px; }
+  table.lbTable th, table.lbTable td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #eee;
+  }
+  table.lbTable th { background: #EEF3F8; color: #1F4E79; }
+  table.lbTable tr.me { background: #FFF8E1; font-weight: bold; }
+
+  .btnRow { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  .secondaryBtn {
+    background: #fff;
+    color: #1F4E79;
+    border: 2px solid #1F4E79;
+    padding: 12px 22px;
+    font-size: 16px;
+    font-family: Verdana, Geneva, sans-serif;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  footer {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    margin-top: 24px;
+  }
+
+  @media (max-width: 480px) {
+    #app { padding: 10px 10px 30px; }
+    #finalScoreBig { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>NISM-Series-V-A: Mutual Fund Distributors</h1>
+    <p>Chapter 5 Quiz Game — Scheme Related Information</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="startScreen">
+    <p>25 questions. You have <b>60 seconds</b> per question.<br>
+       Answer correctly or wrongly and you may click <b>Next</b> to move on immediately —
+       or the game auto-advances when time runs out.</p>
+    <input type="text" id="playerName" placeholder="Enter your name" maxlength="30">
+    <br>
+    <button class="bigBtn" onclick="startGame()">Start Quiz</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quizScreen">
+    <div class="topBar">
+      <div class="progressPill" id="progressPill">Question 1 / 25</div>
+      <div class="scorePill" id="scorePill">Score: 0</div>
+    </div>
+
+    <div id="timerWrap">
+      <div id="timerBarBg"><div id="timerBarFill"></div></div>
+      <div id="timerText"><span id="timeLeft">60</span> sec left</div>
+    </div>
+
+    <div id="questionBox">
+      <div id="questionNum"></div>
+      <div id="questionText"></div>
+    </div>
+
+    <div id="optionsList"></div>
+
+    <div id="explanationBox"></div>
+
+    <div id="controlsRow">
+      <button id="nextBtn" onclick="goNext()">Next ▶</button>
+    </div>
+  </div>
+
+  <!-- SCORE SCREEN -->
+  <div id="scoreScreen">
+    <h2 id="scoreHeading">Quiz Complete!</h2>
+    <div id="finalScoreBig"></div>
+    <div id="finalScoreSub"></div>
+
+    <div id="resultTableWrap">
+      <table class="resultTable">
+        <thead>
+          <tr><th>#</th><th>Question</th><th>Your Answer</th><th>Result</th></tr>
+        </thead>
+        <tbody id="resultTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="btnRow">
+      <button class="bigBtn" onclick="restartGame()">Play Again</button>
+      <button class="secondaryBtn" onclick="clearLeaderboard()">Clear Scoreboard</button>
+    </div>
+
+    <div id="leaderboardWrap">
+      <h3>🏆 Scoreboard (this device)</h3>
+      <table class="lbTable">
+        <thead><tr><th>#</th><th>Name</th><th>Score</th><th>Date</th></tr></thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>NISM-Series-V-A Chapter 5 Practice Quiz</footer>
+</div>
+
+<script>
+/* ================= QUESTION DATA ================= */
+const RAW_QUESTIONS = [{"q": "What principle governs an investor's obligation to read scheme-related documents before investing in a mutual fund?", "options": ["Caveat emptor (‘let the buyer beware’)", "Caveat venditor", "Res ipsa loquitur", "Uberrima fides"], "answer": "Caveat emptor (‘let the buyer beware’)", "explanation": "Since the application form is a contractual arrangement, the investor is presumed to have read the scheme documents and cannot later claim to be unaware of disclosed facts."}, {"q": "Which document contains statutory information about the mutual fund/AMC that is common to all schemes offered by that fund?", "options": ["Statement of Additional Information (SAI)", "Scheme Information Document (SID)", "Key Information Memorandum (KIM)", "Fund Factsheet"], "answer": "Statement of Additional Information (SAI)", "explanation": "A single SAI is relevant for all schemes of a mutual fund, whereas the SID is scheme-specific."}, {"q": "What role does SEBI play with respect to the SID and SAI before they are used in the market?", "options": ["SEBI vets the documents and gives observations that must be incorporated", "SEBI approves the documents", "SEBI drafts the documents on behalf of the AMC", "SEBI has no role in reviewing these documents"], "answer": "SEBI vets the documents and gives observations that must be incorporated", "explanation": "SEBI neither approves nor disapproves scheme documents; it only vets them and gives observations, a fact stated on the SID's cover page."}, {"q": "Apart from the mutual fund's own website, where must the final SID and SAI (after incorporating SEBI's observations) be hosted?", "options": ["AMFI's website", "SEBI's website only", "RBI's website", "The stock exchange's website"], "answer": "AMFI's website", "explanation": "As prescribed by SEBI, final scheme documents are hosted on AMFI's website (www.amfiindia.com) besides the AMC's own site."}, {"q": "Although prepared and issued as a separate document in practice, which document is legally treated as forming part of the SID?", "options": ["Statement of Additional Information (SAI)", "Key Information Memorandum (KIM)", "Addendum", "Fund Factsheet"], "answer": "Statement of Additional Information (SAI)", "explanation": "The legal technicality is that the SAI is part of the SID, even though the two documents are separately issued."}, {"q": "Which document is mandatorily required to accompany every mutual fund application form?", "options": ["Key Information Memorandum (KIM)", "Statement of Additional Information (SAI)", "Annual Report", "Fund Factsheet"], "answer": "Key Information Memorandum (KIM)", "explanation": "Since circulating the full SID/SAI with every form is impractical, SEBI mandates that the KIM accompany every application form."}, {"q": "How frequently must the Key Information Memorandum (KIM) be updated?", "options": ["At least once every half-year", "Once every month", "Once every two years", "Only at the time the scheme is first launched"], "answer": "At least once every half-year", "explanation": "KIM must be updated at least once in a half-year, within one month of the end of the half-year (based on data as of end-September/end-March), and filed with SEBI electronically."}, {"q": "What document is used to communicate interim changes to the SID, SAI or KIM before their next scheduled formal update?", "options": ["Addendum", "Circular", "Press release only", "Public notice only"], "answer": "Addendum", "explanation": "An addendum is considered part of the scheme-related documents and must accompany the KIM until the documents are formally updated."}, {"q": "As per Box 5.1 of the workbook, which of the following is NOT one of the ‘Fundamental Attributes’ of a mutual fund scheme?", "options": ["Distributor empanelment and commission-sharing terms", "Type of scheme", "Investment objective", "Terms of issue (liquidity provisions, aggregate fees/expenses, safety net)"], "answer": "Distributor empanelment and commission-sharing terms", "explanation": "Fundamental attributes cover type of scheme, investment objective and terms of issue; distributor commercial arrangements are not a fundamental attribute of the scheme."}, {"q": "When there is a change in the fundamental attributes of a scheme, what right must be given to unit-holders as per Regulation 22(9)(c) of the SEBI (Mutual Funds) Regulations, 2026?", "options": ["An option to exit at the prevailing NAV without payment of any exit load", "Compulsory redemption of their units", "An option to convert only into another scheme of the same AMC", "No specific right beyond a general notice"], "answer": "An option to exit at the prevailing NAV without payment of any exit load", "explanation": "Trustees must ensure written communication, website disclosure, and an exit option at prevailing NAV without exit load before implementing a change in fundamental attributes."}, {"q": "What does the abbreviation TER stand for in the context of mutual funds?", "options": ["Total Expense Ratio", "Trustee Expense Report", "Total Equity Return", "Transaction Execution Ratio"], "answer": "Total Expense Ratio", "explanation": "TER = Base Expense Ratio + Brokerage Cost + Transaction Cost for trade execution + Statutory levies (including GST)."}, {"q": "How does the Base Expense Ratio (BER) of a Direct Plan compare with that of the Regular Plan of the same scheme?", "options": ["It is lower, since no distribution expenses or commission is paid from a Direct Plan", "It is higher due to additional AMC servicing costs", "It is identical, as both plans have the same cost structure", "It is not required to be separately disclosed"], "answer": "It is lower, since no distribution expenses or commission is paid from a Direct Plan", "explanation": "Direct Plans exclude distribution expenses/commission, so their Base Expense Ratio is required to be lower than that of the Regular Plan."}, {"q": "A change in the Base Expense Ratio (BER) charged to a scheme/plan must be communicated to investors (via email/SMS) how many working days before the change takes effect?", "options": ["At least three working days", "At least seven working days", "At least thirty days", "Only after the change has taken effect"], "answer": "At least three working days", "explanation": "SEBI requires prior notice of at least three working days, both to investors and on the website, before effecting a change in the BER."}, {"q": "How many risk levels does the Risk-o-meter depict for a mutual fund scheme?", "options": ["Six", "Four", "Five", "Eight"], "answer": "Six", "explanation": "The Risk-o-meter has six levels: Low, Low to Moderate, Moderate, Moderately High, High, and Very High risk."}, {"q": "Which colour represents ‘Very High risk’ on the SEBI-prescribed Risk-o-meter colour scheme?", "options": ["Red", "Dark Orange", "Caramel", "Neon Yellow"], "answer": "Red", "explanation": "The six Risk-o-meter colours (low to very high) are Irish Green, Chartreuse, Neon Yellow, Caramel, Dark Orange, and Red respectively."}, {"q": "How often must a scheme's Risk-o-meter be evaluated and, if changed, communicated to unit-holders?", "options": ["On a monthly basis", "On a quarterly basis", "On a half-yearly basis", "Only at the time of NFO"], "answer": "On a monthly basis", "explanation": "The Risk-o-meter must be evaluated monthly, with any change conveyed through a notice-cum-addendum and by email/SMS."}, {"q": "What is the pictorial risk-representation tool used for Specialized Investment Fund (SIF) strategies called?", "options": ["Risk-Band", "Risk-o-meter", "Risk Index", "Volatility Grid"], "answer": "Risk-Band", "explanation": "Since SIFs are riskier than regular mutual fund schemes, a separate tool called the Risk-Band (5 levels) is used, distinct from the 6-level Risk-o-meter."}, {"q": "How many risk levels does the Risk-Band applicable to SIFs have?", "options": ["Five", "Six", "Four", "Three"], "answer": "Five", "explanation": "The Risk-Band for SIFs ranges from Risk Band Level 1 (lowest risk) to Risk Band Level 5 (highest risk)."}, {"q": "Within how many days from the close of a month must Mutual Funds/AMCs (for non-debt schemes) disclose the scheme portfolio on their website and AMFI's website?", "options": ["10 days", "5 days", "15 days", "30 days"], "answer": "10 days", "explanation": "Portfolio disclosure (with ISIN) must be made within 10 days of the close of each month/half-year in a downloadable spreadsheet format."}, {"q": "For debt schemes, how frequently and within what timeline must portfolio disclosure be made?", "options": ["Fortnightly, within 5 days of every fortnight", "Monthly, within 10 days of month close", "Weekly, within 2 days", "Quarterly, within 15 days"], "answer": "Fortnightly, within 5 days of every fortnight", "explanation": "Debt scheme portfolios must be disclosed fortnightly, within 5 days of every fortnight, along with the yield of the instruments."}, {"q": "Within how many months from the close of a half-year must unaudited financial results of a scheme be hosted on the AMC's website?", "options": ["One month", "Three months", "Six months", "Two months"], "answer": "One month", "explanation": "Every mutual fund/AMC must host unaudited half-yearly financial results (ending 31st March and 30th September) within one month of the half-year close."}, {"q": "By when must the annual report or its abridged summary be emailed to investors who have registered their email ID with the fund?", "options": ["No later than four months from the close of the relevant financial year (31st March)", "Within two months of the financial year close", "Within six months of the financial year close", "Within one month of the financial year close"], "answer": "No later than four months from the close of the relevant financial year (31st March)", "explanation": "Investors with registered email IDs must receive the annual report/abridged summary within four months from 31st March each year; others may opt for a physical copy."}, {"q": "Which of the following is NOT a statutory (mandatory) scheme-related document?", "options": ["Fund Factsheet", "Scheme Information Document", "Statement of Additional Information", "Key Information Memorandum"], "answer": "Fund Factsheet", "explanation": "The Fund Factsheet is a voluntary, non-mandatory disclosure published monthly as part of AMFI's best-practices guidelines, unlike SID, SAI and KIM which are statutory."}, {"q": "Publishing the monthly Fund Factsheet is a practice followed by AMCs primarily because of:", "options": ["AMFI's best practices guideline, on a voluntary basis", "A direct SEBI regulatory mandate to publish factsheets", "A Reserve Bank of India directive", "A requirement under the Companies Act"], "answer": "AMFI's best practices guideline, on a voluntary basis", "explanation": "The workbook explicitly states that publishing a monthly fund factsheet is not a regulatory requirement but a market practice under AMFI's best-practices guideline."}, {"q": "For an open-ended mutual fund scheme (other than Liquid and Overnight Funds), on which days is the NAV computed and released?", "options": ["All business days", "Only on Fridays", "Once a week", "Once a month"], "answer": "All business days", "explanation": "NAV of open-ended schemes is calculated for all business days and released to the press; Liquid/Overnight Funds additionally disclose NAV on Sundays/holidays to reflect daily accrual."}]
+;
+
+const TIME_PER_Q = 60; // seconds
+const LB_KEY = "nism_ch5_quiz_leaderboard";
+
+let questions = [];      // shuffled question set with shuffled options for this run
+let currentIndex = 0;
+let score = 0;
+let timerInterval = null;
+let timeLeft = TIME_PER_Q;
+let answered = false;
+let playerName = "Player";
+let results = [];        // per-question outcome for the results table
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function prepareQuestions() {
+  const shuffledQs = shuffleArray(RAW_QUESTIONS);
+  questions = shuffledQs.map(q => {
+    const opts = shuffleArray(q.options);
+    return {
+      q: q.q,
+      answer: q.answer,
+      explanation: q.explanation,
+      options: opts
+    };
+  });
+}
+
+function startGame() {
+  const nameInput = document.getElementById('playerName');
+  playerName = (nameInput.value || '').trim() || 'Player';
+  prepareQuestions();
+  currentIndex = 0;
+  score = 0;
+  results = [];
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('scoreScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answered = false;
+  clearInterval(timerInterval);
+  timeLeft = TIME_PER_Q;
+
+  const q = questions[currentIndex];
+  document.getElementById('progressPill').textContent = 'Question ' + (currentIndex + 1) + ' / ' + questions.length;
+  document.getElementById('scorePill').textContent = 'Score: ' + score;
+  document.getElementById('questionNum').textContent = 'Q' + (currentIndex + 1) + '.';
+  document.getElementById('questionText').textContent = q.q;
+
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'optionBtn';
+    btn.innerHTML = '<span class="letter">' + letters[idx] + '</span><span class="optText"></span>';
+    btn.querySelector('.optText').textContent = opt;
+    btn.onclick = () => selectOption(opt, btn);
+    list.appendChild(btn);
+  });
+
+  document.getElementById('explanationBox').style.display = 'none';
+  document.getElementById('explanationBox').innerHTML = '';
+  document.getElementById('nextBtn').style.display = 'none';
+
+  updateTimerUI();
+  timerInterval = setInterval(tick, 1000);
+}
+
+function tick() {
+  timeLeft--;
+  if (timeLeft <= 0) {
+    timeLeft = 0;
+    updateTimerUI();
+    clearInterval(timerInterval);
+    if (!answered) {
+      handleTimeout();
+    }
+    return;
+  }
+  updateTimerUI();
+}
+
+function updateTimerUI() {
+  document.getElementById('timeLeft').textContent = timeLeft;
+  const pct = (timeLeft / TIME_PER_Q) * 100;
+  const fill = document.getElementById('timerBarFill');
+  fill.style.width = pct + '%';
+  if (timeLeft <= 10) {
+    fill.style.background = '#c0392b';
+  } else if (timeLeft <= 25) {
+    fill.style.background = '#e0a500';
+  } else {
+    fill.style.background = '#2e8b57';
+  }
+}
+
+function selectOption(selectedOpt, btnEl) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = questions[currentIndex];
+  const isCorrect = selectedOpt === q.answer;
+  if (isCorrect) score++;
+
+  revealAnswer(selectedOpt);
+
+  results.push({
+    num: currentIndex + 1,
+    question: q.q,
+    yourAnswer: selectedOpt,
+    correctAnswer: q.answer,
+    outcome: isCorrect ? 'correct' : 'wrong'
+  });
+
+  document.getElementById('scorePill').textContent = 'Score: ' + score;
+  showExplanation();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function handleTimeout() {
+  answered = true;
+  const q = questions[currentIndex];
+  revealAnswer(null);
+
+  results.push({
+    num: currentIndex + 1,
+    question: q.q,
+    yourAnswer: null,
+    correctAnswer: q.answer,
+    outcome: 'timeout'
+  });
+
+  document.getElementById('scorePill').textContent = 'Score: ' + score;
+  showExplanation();
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+
+function revealAnswer(selectedOpt) {
+  const q = questions[currentIndex];
+  const buttons = document.querySelectorAll('#optionsList .optionBtn');
+  buttons.forEach(btn => {
+    const optText = btn.querySelector('.optText').textContent;
+    btn.classList.add('disabledOpt');
+    btn.onclick = null;
+    if (optText === q.answer) {
+      btn.classList.add('correct');
+    } else if (selectedOpt !== null && optText === selectedOpt) {
+      btn.classList.add('wrong');
+    } else {
+      btn.classList.add('fadedOpt');
+    }
+  });
+}
+
+function showExplanation() {
+  const q = questions[currentIndex];
+  const box = document.getElementById('explanationBox');
+  box.style.display = 'block';
+  box.innerHTML = '<b>Explanation:</b> ' + escapeHtml(q.explanation) +
+                   '<br><b>Correct Answer:</b> ' + escapeHtml(q.answer);
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function goNext() {
+  currentIndex++;
+  if (currentIndex >= questions.length) {
+    finishGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function finishGame() {
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('scoreScreen').style.display = 'block';
+
+  document.getElementById('finalScoreBig').textContent = score + ' / ' + questions.length;
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('finalScoreSub').textContent =
+    playerName + ', you scored ' + pct + '%.';
+
+  const tbody = document.getElementById('resultTableBody');
+  tbody.innerHTML = '';
+  results.forEach(r => {
+    const tr = document.createElement('tr');
+    let tag, yourAnsText;
+    if (r.outcome === 'correct') {
+      tag = '<span class="tagCorrect">Correct</span>';
+      yourAnsText = escapeHtml(r.yourAnswer);
+    } else if (r.outcome === 'wrong') {
+      tag = '<span class="tagWrong">Wrong</span>';
+      yourAnsText = escapeHtml(r.yourAnswer);
+    } else {
+      tag = '<span class="tagTimeout">Time out</span>';
+      yourAnsText = '<i>No answer</i>';
+    }
+    tr.innerHTML = '<td>' + r.num + '</td>' +
+                    '<td>' + escapeHtml(r.question) + '</td>' +
+                    '<td>' + yourAnsText + '</td>' +
+                    '<td>' + tag + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  saveScoreToLeaderboard(playerName, score, questions.length);
+  renderLeaderboard();
+}
+
+function restartGame() {
+  document.getElementById('scoreScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+
+/* ---------- Leaderboard (stored in-memory + localStorage if available) ---------- */
+let memoryLeaderboard = [];
+
+function loadLeaderboard() {
+  try {
+    const raw = localStorage.getItem(LB_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* localStorage unavailable (e.g., some in-app browsers) */ }
+  return memoryLeaderboard;
+}
+
+function saveLeaderboard(list) {
+  memoryLeaderboard = list;
+  try {
+    localStorage.setItem(LB_KEY, JSON.stringify(list));
+  } catch (e) { /* ignore */ }
+}
+
+function saveScoreToLeaderboard(name, sc, total) {
+  const list = loadLeaderboard();
+  list.push({
+    name: name,
+    score: sc,
+    total: total,
+    date: new Date().toLocaleDateString()
+  });
+  list.sort((a, b) => (b.score / b.total) - (a.score / a.total));
+  saveLeaderboard(list.slice(0, 15));
+}
+
+function renderLeaderboard() {
+  const list = loadLeaderboard();
+  const body = document.getElementById('leaderboardBody');
+  body.innerHTML = '';
+  if (list.length === 0) {
+    body.innerHTML = '<tr><td colspan="4">No scores yet.</td></tr>';
+    return;
+  }
+  list.forEach((entry, idx) => {
+    const tr = document.createElement('tr');
+    const isMe = entry.name === playerName && entry.score === score && idx === list.findIndex(e => e.name === playerName && e.score === score);
+    if (isMe) tr.className = 'me';
+    tr.innerHTML = '<td>' + (idx + 1) + '</td>' +
+                    '<td>' + escapeHtml(entry.name) + '</td>' +
+                    '<td>' + entry.score + ' / ' + entry.total + '</td>' +
+                    '<td>' + entry.date + '</td>';
+    body.appendChild(tr);
+  });
+}
+
+function clearLeaderboard() {
+  saveLeaderboard([]);
+  renderLeaderboard();
+}
+</script>
+</body>
+</html>
