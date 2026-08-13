@@ -1,41 +1,25 @@
-name: Deploy quizzes to GitHub Pages
+name: Validate NISM quiz
 
 on:
   push:
     branches: [main]
     paths:
-      - index.html
-      - chapter5/**
       - nism-master-quiz/**
       - .github/workflows/pages.yml
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: .
-      - name: Deploy Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Check the self-contained quiz
+        shell: bash
+        run: |
+          test -s nism-master-quiz/index.html
+          grep -q '750 questions' nism-master-quiz/index.html
+          grep -q 'Batch 1 of 15' nism-master-quiz/index.html
