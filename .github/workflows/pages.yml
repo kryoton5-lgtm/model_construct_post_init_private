@@ -21,5 +21,6 @@ jobs:
         shell: bash
         run: |
           test -s nism-master-quiz/index.html
-          grep -q '750 questions' nism-master-quiz/index.html
-          grep -Eq 'Batch 1 of 15|Stage 1 of 15' nism-master-quiz/index.html
+          grep -q '750 challenges' nism-master-quiz/index.html
+          grep -q 'Stage 1 of 15' nism-master-quiz/index.html
+          grep -q 'Bala is' nism-master-quiz/index.html
